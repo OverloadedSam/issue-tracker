@@ -1,16 +1,17 @@
 'use client';
+import ErrorMessage from '@/app/components/ErrorMessage';
+import { createIssueSchema } from '@/app/validationSchemas';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Callout, TextField } from '@radix-ui/themes';
-import 'easymde/dist/easymde.min.css';
-import SimpleMDE from 'react-simplemde-editor';
-import { Controller, useForm } from 'react-hook-form';
 import axios from 'axios';
+import 'easymde/dist/easymde.min.css';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import SimpleMDE from 'react-simplemde-editor';
+import { z } from 'zod';
 
-interface IssueForm {
-  title: string;
-  description: string;
-}
+type IssueForm = z.infer<typeof createIssueSchema>;
 
 interface ApiRes {
   id: number;
@@ -23,7 +24,14 @@ interface ApiRes {
 
 const NewIssuePage = () => {
   const router = useRouter();
-  const { register, control, handleSubmit } = useForm<IssueForm>();
+  const {
+    register,
+    formState: { errors },
+    control,
+    handleSubmit,
+  } = useForm<IssueForm>({
+    resolver: zodResolver(createIssueSchema),
+  });
   const [error, setError] = useState<null | string>(null);
 
   const submitHandler = async (data: IssueForm) => {
@@ -46,6 +54,7 @@ const NewIssuePage = () => {
         <TextField.Root>
           <TextField.Input {...register('title')} placeholder='Title' />
         </TextField.Root>
+        <ErrorMessage>{errors.title?.message}</ErrorMessage>
         <Controller
           name='description'
           control={control}
@@ -53,6 +62,7 @@ const NewIssuePage = () => {
             <SimpleMDE placeholder='Description' {...field} />
           )}
         />
+        <ErrorMessage>{errors.description?.message}</ErrorMessage>
         <Button>Submit New Issue</Button>
       </form>
     </div>
