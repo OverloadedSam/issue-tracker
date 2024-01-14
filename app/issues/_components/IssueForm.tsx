@@ -18,15 +18,6 @@ const SimpleMDE = dynamic(() => import('react-simplemde-editor'), {
 
 type IssueFormData = z.infer<typeof issueSchema>;
 
-interface ApiRes {
-  id: number;
-  title: string;
-  description: string;
-  status: string;
-  createdAt: string;
-  updateAt: string;
-}
-
 const IssueForm = ({ issue }: { issue?: Issue }) => {
   const router = useRouter();
   const {
@@ -43,7 +34,8 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
   const submitHandler = async (data: IssueFormData) => {
     try {
       setIsSubmitting(true);
-      await axios.post<ApiRes>('/api/issues/', data);
+      if (issue) await axios.patch(`/api/issues/${issue.id}`, data);
+      else await axios.post('/api/issues/', data);
       router.push('/issues');
     } catch (error) {
       setError('An unexpected error occurred!');
@@ -77,7 +69,8 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
         />
         <ErrorMessage>{errors.description?.message}</ErrorMessage>
         <Button disabled={isSubmitting}>
-          Submit New Issue {isSubmitting && <Spinner />}
+          {issue ? 'Update Issue' : 'Submit New Issue'}{' '}
+          {isSubmitting && <Spinner />}
         </Button>
       </form>
     </div>
